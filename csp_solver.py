@@ -3,6 +3,8 @@
 # Import libraries
 import sys
 
+# Import class
+from ConstraintSatisfactionProblem import CSP
 
 # Main method
 # is invoked
@@ -48,9 +50,10 @@ def main():
     else: # if no value is provided for forward check flag
         # a default of zero is assigned
         forward_check_flag = 0
-
-    print("Forward Check Flag: ", forward_check_flag)
+    
+    # Create a CSP problem
+    problem = CSP()
 
 # Run the script
 if __name__ == "__main__":
-	main()
+    main()

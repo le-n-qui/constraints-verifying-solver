@@ -54,6 +54,9 @@ def main():
     # Create a CSP problem
     problem = CSP()
 
+    # Let CSP take the problem context from file
+    problem.read_file(args[0])
+
 # Run the script
 if __name__ == "__main__":
     main()

@@ -18,5 +18,15 @@ class CSP:
 		# a relation that those variables take on
 		self.constraints = constraints
 
-	def read_file(self):
-		pass
+	def read_file(self, filename):
+		# open filename given at the terminal
+		with open(filename, 'r') as file:
+			# read the first line of the file
+			first_line = file.readline()
+			# turn string into a list of numbers
+			nums_in_line = [ int(x) for x in first_line.strip().split(':') ]
+			print(nums_in_line)
+		    # read subsequent lines of file
+			for line in file:
+				print(line)
+

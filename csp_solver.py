@@ -57,6 +57,15 @@ def main():
     # Let CSP take the problem context from file
     problem.read_file(args[0])
 
+    # Test output
+    print("CSP Variables (their indices)")
+    print(problem.list_of_vars)
+    print("CSP Domains")
+    print(problem.domains)
+    print("CSP Constraints")
+    for c in problem.constraints:
+    	print(c)
+
 # Run the script
 if __name__ == "__main__":
     main()

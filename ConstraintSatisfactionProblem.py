@@ -7,6 +7,11 @@
 
 class CSP:
     def __init__(self, list_of_vars=[], domains={}, constraints=[]):
+        """This method is invoked when creating
+           an instance of the class. Its parameters
+           take on default values if not given. 
+        """
+
         # attribute denoting the number of variables in the problem
         self._list_of_vars = list_of_vars
         # attribute denoting the list of domains, each with their 
@@ -14,9 +19,21 @@ class CSP:
         self._domains = domains
         # attribute denoting the list of constraints
         # with each contraint being a tuple of 
-        # two items: a tuple of variables and 
-        # a relation that those variables take on
+        # five items: integer, variable, integer
+        # comparison operator, integer/variable
         self._constraints = constraints
+    
+    @property
+    def list_of_vars(self):
+        return self._list_of_vars
+    
+    @property
+    def domains(self):
+        return self._domains
+    
+    @property
+    def constraints(self):
+        return self._constraints
     
     def read_file(self, filename):
         """This method helps process a text file
@@ -44,9 +61,7 @@ class CSP:
             first_line = file.readline()
             # turn string into a list of numbers
             nums_in_line = [ int(x) for x in first_line.strip().split(':') ]
-            # Test output
-            print("Domain Line")
-            print(nums_in_line)
+            
             # read subsequent lines of file
             for line in file:
                 # Assumption: every element in the 
@@ -82,15 +97,6 @@ class CSP:
         self._list_of_vars = sorted(domains_dict.keys())
         self._domains = domains_dict
         self._constraints = constraints
-
-        # Test output
-        print("Variables (Taken from Domains Dictionary)")
-        print(sorted(domains_dict.keys()))
-        print("Domains Dictionary:")
-        print(domains_dict)
-        print("Constraints:")
-        for c in constraints:
-            print(c)
 
 
                 

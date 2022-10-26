@@ -23,6 +23,13 @@ class CSP:
         # where key is the variable index
         # and value is the domain (range)
         domains_dict = {}
+        # create a list of constraints
+        # each contraint is represented 
+        # as a tuple of 5 elements 
+        # (element can be variable, integer, 
+        # comparison operator)
+        constraints = []
+
         # open filename given at the terminal
         with open(filename, 'r') as file:
             # read the first line of the file
@@ -36,7 +43,7 @@ class CSP:
             for line in file:
                 # Assumption: every element in the 
                 # constraint line is separated
-                # by a whitespace
+                # by one or more whitespaces
                 items = line.split()
 
                 indices = []
@@ -52,13 +59,17 @@ class CSP:
                     # is greater than the size
                     # of nums_in_line
                     if ind < len(nums_in_line) and ind != (len(nums_in_line) - 1):
-                        # create domain for variable with this above index
+                        # create domain for variable with this index
                         domains_dict[ind] = list(range(nums_in_line[ind]))
                     else:
                         domains_dict[ind] = list(range(nums_in_line[-1]))
 
+                constraints.append((items[0], items[2], items[4], items[5], items[6]))
         print("Domains Dictionary:")
         print(domains_dict)
+        print("Constraints:")
+        for c in constraints:
+            print(c)
 
 
                 

@@ -63,8 +63,28 @@ def main():
     print("CSP Domains")
     print(problem.domains)
     print("CSP Constraints")
-    for c in problem.constraints:
-    	print(c)
+    print("Check using constraints")
+    for key, val in problem.constraints.items():
+    	if type(key) is tuple:
+    		i, j = key
+    		print("Var {} and Var {}".format(i,j))
+    		for v in val:
+    		    compare = v 
+    		    for num1 in problem.domains[i]:
+    			    for num2 in problem.domains[j]:
+    			    	print("Num#1: {}\tNum#2: {}".format(num1, num2))
+    			    	print("Result: ", compare(num1, num2))
+
+    	else:
+            print("Var {}".format(key))
+            for v in val:
+                compare = v 
+                for num in problem.domains[key]:
+                    print("Num: ", num)
+                    print("Result: ", compare(num))
+
+    #problem.get_constraint(0,1)
+    #problem.get_constraint(1)
 
 # Run the script
 if __name__ == "__main__":

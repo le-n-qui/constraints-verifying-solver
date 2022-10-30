@@ -82,9 +82,12 @@ def main():
                 for num in problem.domains[key]:
                     print("Num: ", num)
                     print("Result: ", compare(num))
-
-    #problem.get_constraint(0,1)
-    #problem.get_constraint(1)
+    # see neighbor list of variable
+    for var, neighbors in problem.neighbors.items():
+    	print("Variable: {}\tNeighbors: {}".format(var, neighbors))
+    # Test to see all arcs
+    #print("What are the arcs in CSP? ")
+    #problem.verify_arc_consistency()
 
 # Run the script
 if __name__ == "__main__":

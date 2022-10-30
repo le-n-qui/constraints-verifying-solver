@@ -26,6 +26,9 @@ class CSP:
         # the neighbor list of
         # each variable
         self._neighbors = None
+        # attribute denoting
+        # the solution of CSP
+        self._solution = {}
     
     @property
     def list_of_vars(self):
@@ -237,7 +240,48 @@ class CSP:
         
         return revised
 
+    def backtracking_search(self):
+        """This method helps
+           find the solution 
+           to the current CSP.
+        """
+        return self.backtrack(self._solution)
+    
+    def backtrack(self, assignment):
+        """This method is the 
+           helper method for
+           backtracking_search.
+           It will backtrack
+           when an assignment
+           is invalid.
+        """
+        if not assignment:
+            # TODO: implement select_unassigned_variable
+            # choose an unassigned variable
+            var = self.select_unassigned_variable()
+            
+            # TODO: implement order_domain_values
+            for value in self.order_domain_values(var, assignment):
+                # if value is consistent with assignment
+                    # add {var = value} to the assignment
+                    
+                    # TODO: Modify verify_arc_consistency
+                    inferences = self.verify_arc_consistency(var, value)
 
+                    # if inferences is not failure
+                    if not inferences:
+                        # add inferences to assignment
+                        result = self.backtrack(assignment)
+                        # if result is not failure
+                        if not result:
+                            return result
+                # remove {var = value} and 
+                # inferences from assignment
+
+        else:
+            return assignment
+
+    
                 
                 
 

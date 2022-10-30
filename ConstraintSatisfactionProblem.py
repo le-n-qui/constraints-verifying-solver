@@ -212,7 +212,31 @@ class CSP:
                 # otherwise
                 # for each neighbor variable in 
                 # the neighbor list of variables 1 minus variable 2
+                self._neighbors[ind_var1].remove(var2_index)
+                for neighbor in self._neighbors[ind_var1]:
                     # add that arc that variable
+                    queue.append((neighbor, ind_var1))
+
+        return True
+
+    def revise(self, i, j):
+        revised = False
+        # constraint - lambda function
+        compare = self._constraints[(i, j)]
+        # for each value, x, in domains of X_i
+        for X_i_value in self._domains[i]:
+            # for each value, y, in domains of X_j
+            for X_j_value in self._domains[j]:
+                if compare(X_i_value, X_j_value):
+                    # Found one value from D_j that makes
+                    # (x, y) satisfy the constraint
+                    break
+            else:
+                self._domains[i].remove(X_i_value)
+                revised = True
+        
+        return revised
+
 
                 
                 

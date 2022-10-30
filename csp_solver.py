@@ -86,8 +86,10 @@ def main():
     for var, neighbors in problem.neighbors.items():
     	print("Variable: {}\tNeighbors: {}".format(var, neighbors))
     # Test to see all arcs
-    #print("What are the arcs in CSP? ")
-    #problem.verify_arc_consistency()
+    print("Is CSP arc consistent? ")
+    print(problem.verify_arc_consistency())
+    print("Variable Domains")
+    print(problem.domains)
 
 # Run the script
 if __name__ == "__main__":

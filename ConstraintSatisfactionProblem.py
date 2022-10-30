@@ -22,6 +22,10 @@ class CSP:
         # five items: integer, variable, integer
         # comparison operator, integer/variable
         self._constraints = constraints
+        # attribute denoting 
+        # the neighbor list of
+        # each variable
+        self._neighbors = None
     
     @property
     def list_of_vars(self):
@@ -34,6 +38,10 @@ class CSP:
     @property
     def constraints(self):
         return self._constraints
+
+    @property
+    def neighbors(self):
+        return self._neighbors
     
     def read_file(self, filename):
         """This method helps process a text file
@@ -54,6 +62,11 @@ class CSP:
         # (element can be variable, integer, 
         # comparison operator)
         constraints = {}
+
+        # create a dictionary
+        # where key is the variable index
+        # value is the neighbor list
+        neighbors = {}
 
         # open filename given at the terminal
         with open(filename, 'r') as file:
@@ -90,10 +103,23 @@ class CSP:
                     indices.append(var2_index)
                     # get constraints of which var1 and var2 are a part
                     if not constraints.get((var1_index, var2_index), None): 
+                        # if arc is not seen before, create a new list
                         constraints[(var1_index, var2_index)] = []
+                        # append relation into the new list
                         constraints[(var1_index, var2_index)].append(self.get_relation(var1_index, elements, var2_index))
                     else:
+                        # add relation to existing list for arc
                         constraints[(var1_index, var2_index)].append(self.get_relation(var1_index, elements, var2_index))
+                    # save variable found at position 6 of the items list
+                    # into the neighbor list of variable at position 2
+                    if not neighbors.get(var1_index, None):
+                        # if variable not seen yet, create a new list
+                        neighbors[var1_index] = []
+                        # append neighbor (variable 2) into list
+                        neighbors[var1_index].append(var2_index)
+                    else: 
+                        # add neighbor variable into list
+                        neighbors[var1_index].append(var2_index)
                 else: # an integer is found instead
                     # add constraint for this variable 
                     if not constraints.get(var1_index, None):
@@ -117,6 +143,7 @@ class CSP:
         self._list_of_vars = sorted(domains_dict.keys())
         self._domains = domains_dict
         self._constraints = constraints
+        self._neighbors = neighbors
 
     def get_relation(self, i, constraint_info, j=None):
         """This method returns an anonymous
@@ -157,6 +184,35 @@ class CSP:
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) > Xj
             else:
                 return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) > int(constraint_info[4])
+
+    def verify_arc_consistency(self):
+        """This method helps to check
+           if consistency is found between
+           two variables (arc formed
+           by them). Consistency is 
+           preserved when constraints 
+           for the two selected variables
+           are satisfied. 
+        """
+        
+        # store all arcs specified by the constraints in queue
+        queue = [arc for arc in self._constraints.keys() if type(arc) is tuple]
+        
+        # loop through the queue
+        while not queue:
+            # look at an item from queue
+            ind_var1, ind_var2 = queue.pop()
+            # check if CSP needs to be revised
+            if self.revise(ind_var1, var2_index):
+                # is size of domain for variable 1 equal to zero
+                if len(self._domains[ind_var1]) == 0:
+                    # an inconsistency is found
+                    return False
+
+                # otherwise
+                # for each neighbor variable in 
+                # the neighbor list of variables 1 minus variable 2
+                    # add that arc that variable
 
                 
                 

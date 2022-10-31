@@ -258,7 +258,7 @@ class CSP:
         if not assignment:
             # TODO: implement select_unassigned_variable
             # choose an unassigned variable
-            var = self.select_unassigned_variable()
+            var = self.select_unassigned_variable(assignment)
             
             # TODO: implement order_domain_values
             for value in self.order_domain_values(var, assignment):
@@ -281,7 +281,48 @@ class CSP:
         else:
             return assignment
 
-    
+    def select_unassigned_variable(self, assignment):
+        """This method returns an
+           unassigned variable, using
+           two heuristics: (1) minimum-
+           remaining-values (MRV) & 
+           (2) degree heuristic. If there 
+           are more than one variable with 
+           the same MRV, then degree heuristic
+           is used. If a tie still exists,
+           choose an unassigned variable randomly.
+        """
+        # get a dictionary of unassigned variables and their domains
+        unassigned_var_dict = { var: self._domains[var] 
+            for var in self._domains if var not in assignment}
+        # Get a list of variables
+        unassigned_var_list = list(unassigned_var_dict.keys())
+        # Pick the minimum item
+        min_item = unassigned_var_list[0] # pick the first one
+
+        # Find the variable with the least possible values
+        for var in unassigned_var_list:
+            # number of possible values
+            num_remaining_values = len(unassigned_var_dict[var])
+            min_num_values = len(unassigned_var_dict[min_item])
+
+            # Update min item
+            if num_remaining_values < min_num_values:
+                min_item = var
+            elif num_remaining_values == min_num_values:
+                # use degree heuristic
+                if len(self._constraints[var]) > len(self._constraints[min_item]):
+                    min_item = var
+        
+        return min_item
+
+    def order_domain_values(self, variable, assignment):
+        """This method determines
+           the order in which the 
+           values of the domain
+           be tried.
+        """
+        pass
                 
                 
 

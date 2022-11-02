@@ -6,12 +6,16 @@
 # satisfaction problem.
 
 class CSP:
-    def __init__(self, list_of_vars=[], domains={}, constraints={}):
+    def __init__(self, forward_check=0, list_of_vars=[], domains={}, constraints={}):
         """This method is invoked when creating
            an instance of the class. Its parameters
            take on default values if not given. 
         """
-
+        
+        # attribute denoting whether
+        # CSP needs to be solved
+        # with forward checking
+        self._forward_checking = forward_check
         # attribute denoting the number of variables in the problem
         self._list_of_vars = list_of_vars
         # attribute denoting the list of domains, each with their 
@@ -307,6 +311,7 @@ class CSP:
             min_num_values = len(unassigned_var_dict[min_item])
 
             # Update min item
+            # use minimum remaining values heuristic
             if num_remaining_values < min_num_values:
                 min_item = var
             elif num_remaining_values == min_num_values:
@@ -320,9 +325,37 @@ class CSP:
         """This method determines
            the order in which the 
            values of the domain
-           be tried.
+           be tried. It uses the
+           least-constraining-value
+           heuristic.
         """
-        pass
+        # below is the a list that
+        # keeps track of variable and their
+        # number of inconsistent constraints,
+        # represented as a tuple, e.g. (0, 2) 
+        # [X0, 2 constraints]
+        var_list = []
+
+        # possible values to be selected
+        var_values = self._domains[variable]
+
+        neighbors = self._neighbors[variable]
+        
+        # verify if variable has neighbor(s) or not
+        if len(neighbors) > 0:
+            for neighbor in neighbors:
+                # keep count of neighbor's inconsistent values
+                count = 0
+
+                neighbor_values = self._domains[neighbor]
+                for constraint_func in self._constraints[(variable, neighbor)]
+                    for val1 in var_values:
+                        for val2 in neighbor_values:
+                            if constraint_func(val1, val2):
+                                count += 1
+
+
+
                 
                 
 

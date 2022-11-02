@@ -57,6 +57,9 @@ class CSP:
            the relevant information regarding a CSP
            and save them into the CSP class instance. 
         """
+        flip_signs = {'>': '<', '<': '>',
+                      '>=': '<=', '<=': '>=',
+                      '!=': '!=', '==': '=='}
 
         # create a dictionary
         # where key is the variable index
@@ -105,18 +108,33 @@ class CSP:
 
                 # Check if we have a right hand side variable
                 if items[6].startswith('X'):
+                    # index of second variable
                     var2_index = int(items[6][1])
+
+                    # a 2nd list of elements for 
+                    # the other direction (Bidirection) 
+                    diff_elements = [items[6], flip_signs[items[5]], items[0], items[2], items[4]]
+
                     # save index of variable 2 
                     indices.append(var2_index)
+
                     # get constraints of which var1 and var2 are a part
-                    if not constraints.get((var1_index, var2_index), None): 
+                    if not constraints.get(var1_index, None): 
                         # if arc is not seen before, create a new list
-                        constraints[(var1_index, var2_index)] = []
+                        constraints[var1_index] = []
                         # append relation into the new list
-                        constraints[(var1_index, var2_index)].append(self.get_relation(var1_index, elements, var2_index))
+                        constraints[var1_index].append(((var1_index, var2_index), self.get_relation(var1_index, elements, var2_index)))
                     else:
                         # add relation to existing list for arc
-                        constraints[(var1_index, var2_index)].append(self.get_relation(var1_index, elements, var2_index))
+                        constraints[var1_index].append(((var1_index, var2_index),self.get_relation(var1_index, elements, var2_index)))
+                    
+                    # ensure bidirection for binary constraint
+                    if not constraints.get(var2_index, None):
+                        constraints[var2_index] = []
+                        constraints[var2_index].append(((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index)))
+                    else:
+                        constraints[var2_index].append(((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index)))
+                    
                     # save variable found at position 6 of the items list
                     # into the neighbor list of variable at position 2
                     if not neighbors.get(var1_index, None):
@@ -131,9 +149,9 @@ class CSP:
                     # add constraint for this variable 
                     if not constraints.get(var1_index, None):
                         constraints[var1_index] = []
-                        constraints[var1_index].append(self.get_relation(var1_index, elements))
+                        constraints[var1_index].append(((var1_index,),self.get_relation(var1_index, elements)))
                     else:
-                        constraints[var1_index].append(self.get_relation(var1_index, elements))
+                        constraints[var1_index].append(((var1_index,),self.get_relation(var1_index, elements)))
                     
                 # loop through the list of indices
                 for ind in indices:
@@ -161,36 +179,57 @@ class CSP:
            compares the two quantities using
            the appropriate relational operator.
         """
-        if constraint_info[3] == "==":
-            if j != None:
+        if j == None:
+            return self.get_unary_relation(i, constraint_info)
+        else:
+            return self.get_binary_relation(i, constraint_info, j)
+    
+    def get_binary_relation(self, i, constraint_info, j):
+        comparison_ops = ['!=', '==', '<=', '>=', '<', '>'] 
+        if constraint_info[3] in comparison_ops:
+            if constraint_info[3] == "==":
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) == Xj
-            else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) == int(constraint_info[4])
-        elif constraint_info[3] == "!=":
-            if j != None:
+            elif constraint_info[3] == "!=":
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) != Xj
-            else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) != int(constraint_info[4])
-        elif constraint_info[3] == "<=":
-            if j != None:
+            elif constraint_info[3] == "<=":
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) <= Xj
-            else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) <= int(constraint_info[4])
-        elif constraint_info[3] == ">=":
-            if j != None:
+            elif constraint_info[3] == ">=":
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) >= Xj
-            else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) >= int(constraint_info[4])
-        elif constraint_info[3] == "<":
-            if j != None:
+            elif constraint_info[3] == "<":
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) < Xj
-            else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) < int(constraint_info[4])
-        else: # constraint_info[3] == ">"
-            if j != None:
+            else: # constraint_info[3] == ">"
                 return lambda Xi, Xj: int(constraint_info[0]) * Xi + int(constraint_info[2]) > Xj
+        
+        else:
+            if constraint_info[1] == "==":
+                return lambda Xi, Xj: Xi == int(constraint_info[2]) * Xi + int(constraint_info[4])
+            elif constraint_info[1] == "!=":
+                return lambda Xi, Xj: Xi != int(constraint_info[2]) * Xi + int(constraint_info[4])
+            elif constraint_info[1] == "<=":
+                return lambda Xi, Xj: Xi <= int(constraint_info[2]) * Xi + int(constraint_info[4])
+            elif constraint_info[1] == ">=":
+                return lambda Xi, Xj: Xi >= int(constraint_info[2]) * Xi + int(constraint_info[4])
+            elif constraint_info[1] == "<":
+                return lambda Xi, Xj: Xi < int(constraint_info[2]) * Xi + int(constraint_info[4])
             else:
-                return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) > int(constraint_info[4])
+                return lambda Xi, Xj: Xi > int(constraint_info[2]) * Xi + int(constraint_info[4])
+
+        
+        
+
+    def get_unary_relation(self, i, constraint_info):
+        if constraint_info[3] == "==":
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) == int(constraint_info[4])
+        elif constraint_info[3] == "!=":
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) != int(constraint_info[4])
+        elif constraint_info[3] == "<=":
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) <= int(constraint_info[4])
+        elif constraint_info[3] == ">=":
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) >= int(constraint_info[4])
+        elif constraint_info[3] == "<":
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) < int(constraint_info[4])
+        else: # constraint_info[3] == ">"
+            return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) > int(constraint_info[4])
 
     def verify_arc_consistency(self):
         """This method helps to check
@@ -270,7 +309,9 @@ class CSP:
                     # add {var = value} to the assignment
                     
                     # TODO: Modify verify_arc_consistency
-                    inferences = self.verify_arc_consistency(var, value)
+                    # if True (forward checking to be done)
+                    if self._forward_checking:
+                        inferences = self.verify_arc_consistency(var, value)
 
                     # if inferences is not failure
                     if not inferences:
@@ -348,7 +389,7 @@ class CSP:
                 count = 0
 
                 neighbor_values = self._domains[neighbor]
-                for constraint_func in self._constraints[(variable, neighbor)]
+                for constraint_func in self._constraints[(variable, neighbor)]:
                     for val1 in var_values:
                         for val2 in neighbor_values:
                             if constraint_func(val1, val2):

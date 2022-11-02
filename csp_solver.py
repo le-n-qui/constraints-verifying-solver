@@ -51,8 +51,11 @@ def main():
         # a default of zero is assigned
         forward_check_flag = 0
     
-    # Create a CSP problem
-    problem = CSP()
+    if forward_check_flag == 0
+        # Create a CSP problem
+        problem = CSP()
+    else:
+    	problem = CSP(forward_check=1)
 
     # Let CSP take the problem context from file
     problem.read_file(args[0])

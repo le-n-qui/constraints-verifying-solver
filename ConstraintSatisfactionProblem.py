@@ -1,3 +1,6 @@
+import copy
+import time
+
 # This is the Constraint 
 # Satisfaction Problem class.
 # Instance of this class
@@ -330,21 +333,33 @@ class CSP:
         if not assignment:
             # TODO: implement select_unassigned_variable
             # choose an unassigned variable
-            var = self.select_unassigned_variable(assignment)
+            # var = self.select_unassigned_variable(assignment)
             
+            # Without MCV heuristic
+            var_list = [var for var in self._list_of_vars if var not in assignment]
+
+            var = var_list[0]
+
             # TODO: implement order_domain_values
-            for value in self.order_domain_values(var, assignment):
+            # for value in self.order_domain_values(var, assignment):
+
+            # Without LCV heuristic
+            for value in self._domains[var]:
+                
                 # if value is consistent with assignment
-                    # add {var = value} to the assignment
-                    
-                    # TODO: Modify verify_arc_consistency
-                    # if True (forward checking to be done)
-                    if self._forward_checking:
-                        inferences = self.verify_arc_consistency(var, value)
+                # here we need to check all unary and binary constraints 
+                # (for binary, check between variables that have been assigned)
+                if self.is_consistent(var, value, assignment):
+                    # make assignment of value to variable
+                    assignment[var] = value
+                    # invoke AC-3 algorithm
+                    inferences = self.verify_arc_consistency()
 
                     # if inferences is not failure
-                    if not inferences:
+                    if inferences:
                         # add inferences to assignment
+                        assignment = None 
+
                         result = self.backtrack(assignment)
                         # if result is not failure
                         if not result:
@@ -354,6 +369,19 @@ class CSP:
 
         else:
             return assignment
+
+    def is_consistent(self, variable, value, assignment):
+        for other_var in assignment:
+            for tup in self._constraints[variable]:
+                # is unary constraint satisfied?
+                if tup[0] == (variable,) and not tup[1](value):
+                    return False
+
+                # is binary constraint satisfied?
+                if tup[0] == (variable, other_var) and not tup[1](value, assignment[other_var]):
+                    pass False
+
+        return True
 
     def select_unassigned_variable(self, assignment):
         """This method returns an
@@ -369,6 +397,7 @@ class CSP:
         # get a dictionary of unassigned variables and their domains
         unassigned_var_dict = { var: self._domains[var] 
             for var in self._domains if var not in assignment}
+
         # Get a list of variables
         unassigned_var_list = list(unassigned_var_dict.keys())
         # Pick the minimum item

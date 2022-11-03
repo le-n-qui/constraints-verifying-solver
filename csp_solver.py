@@ -51,7 +51,7 @@ def main():
         # a default of zero is assigned
         forward_check_flag = 0
     
-    if forward_check_flag == 0
+    if forward_check_flag == 0:
         # Create a CSP problem
         problem = CSP()
     else:
@@ -61,38 +61,33 @@ def main():
     problem.read_file(args[0])
 
     # Test output
-    print("CSP Variables (their indices)")
-    print(problem.list_of_vars)
-    print("CSP Domains")
-    print(problem.domains)
-    print("CSP Constraints")
-    print("Check using constraints")
-    for key, val in problem.constraints.items():
-    	if type(key) is tuple:
-    		i, j = key
-    		print("Var {} and Var {}".format(i,j))
-    		for v in val:
-    		    compare = v 
-    		    for num1 in problem.domains[i]:
-    			    for num2 in problem.domains[j]:
-    			    	print("Num#1: {}\tNum#2: {}".format(num1, num2))
-    			    	print("Result: ", compare(num1, num2))
+    # print("CSP Variables (their indices)")
+    # print(problem.list_of_vars)
+    # print("CSP Domains")
+    # print(problem.domains)
+    # print("CSP Constraints")
+    # print(problem.constraints)
+    # print("Check using constraints")
+    # for key, val in problem.constraints.items():
+    # 	# key: variable index
+    # 	# value: list of tuples where 
+    # 	#         a tuple contains a tuple and a function
+    # 	print("Variable: ", key)
+    # 	print("List: ", val)
 
-    	else:
-            print("Var {}".format(key))
-            for v in val:
-                compare = v 
-                for num in problem.domains[key]:
-                    print("Num: ", num)
-                    print("Result: ", compare(num))
-    # see neighbor list of variable
-    for var, neighbors in problem.neighbors.items():
-    	print("Variable: {}\tNeighbors: {}".format(var, neighbors))
+    	
+    # for var, neighbors in problem.neighbors.items():
+    # 	print("Variable: {}\tNeighbors: {}".format(var, neighbors))
+
     # Test to see all arcs
+    print("All arcs:")
+    print(problem.arcs)
+    print()
+    
+    result = problem.verify_arc_consistency()
     print("Is CSP arc consistent? ")
-    print(problem.verify_arc_consistency())
-    print("Variable Domains")
-    print(problem.domains)
+    print(result)
+    print()
 
 # Run the script
 if __name__ == "__main__":

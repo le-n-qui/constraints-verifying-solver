@@ -29,7 +29,7 @@ class CSP:
         # attribute denoting 
         # the neighbor list of
         # each variable
-        self._neighbors = None
+        self._arcs = []
         # attribute denoting
         # the solution of CSP
         self._solution = {}
@@ -47,8 +47,8 @@ class CSP:
         return self._constraints
 
     @property
-    def neighbors(self):
-        return self._neighbors
+    def arcs(self):
+        return self._arcs
     
     def read_file(self, filename):
         """This method helps process a text file
@@ -106,6 +106,9 @@ class CSP:
                 # save index of variable 1 
                 indices.append(var1_index) 
 
+                # tuple <scope, rel>
+                scope_rel = None
+
                 # Check if we have a right hand side variable
                 if items[6].startswith('X'):
                     # index of second variable
@@ -122,29 +125,32 @@ class CSP:
                     if not constraints.get(var1_index, None): 
                         # if arc is not seen before, create a new list
                         constraints[var1_index] = []
+                        # define tuple
+                        scope_rel = ((var1_index, var2_index), self.get_relation(var1_index, elements, var2_index))
                         # append relation into the new list
-                        constraints[var1_index].append(((var1_index, var2_index), self.get_relation(var1_index, elements, var2_index)))
+                        constraints[var1_index].append(scope_rel)
+
+                        self._arcs.append((var1_index, var2_index))
                     else:
+                        scope_rel = ((var1_index, var2_index),self.get_relation(var1_index, elements, var2_index))
                         # add relation to existing list for arc
-                        constraints[var1_index].append(((var1_index, var2_index),self.get_relation(var1_index, elements, var2_index)))
+                        constraints[var1_index].append(scope_rel)
+
+                        self._arcs.append((var1_index, var2_index))
                     
                     # ensure bidirection for binary constraint
                     if not constraints.get(var2_index, None):
                         constraints[var2_index] = []
-                        constraints[var2_index].append(((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index)))
+                        scope_rel = ((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index))
+                        constraints[var2_index].append(scope_rel)
+
+                        self._arcs.append((var2_index, var1_index))
                     else:
-                        constraints[var2_index].append(((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index)))
+                        scope_rel = ((var2_index, var1_index),self.get_relation(var2_index, diff_elements,var1_index))
+                        constraints[var2_index].append(scope_rel)
+
+                        self._arcs.append((var2_index, var1_index))
                     
-                    # save variable found at position 6 of the items list
-                    # into the neighbor list of variable at position 2
-                    if not neighbors.get(var1_index, None):
-                        # if variable not seen yet, create a new list
-                        neighbors[var1_index] = []
-                        # append neighbor (variable 2) into list
-                        neighbors[var1_index].append(var2_index)
-                    else: 
-                        # add neighbor variable into list
-                        neighbors[var1_index].append(var2_index)
                 else: # an integer is found instead
                     # add constraint for this variable 
                     if not constraints.get(var1_index, None):
@@ -168,7 +174,6 @@ class CSP:
         self._list_of_vars = sorted(domains_dict.keys())
         self._domains = domains_dict
         self._constraints = constraints
-        self._neighbors = neighbors
 
     def get_relation(self, i, constraint_info, j=None):
         """This method returns an anonymous
@@ -185,6 +190,10 @@ class CSP:
             return self.get_binary_relation(i, constraint_info, j)
     
     def get_binary_relation(self, i, constraint_info, j):
+        """This method returns an
+           anonymous function for
+           a binary constraint.
+        """
         comparison_ops = ['!=', '==', '<=', '>=', '<', '>'] 
         if constraint_info[3] in comparison_ops:
             if constraint_info[3] == "==":
@@ -218,6 +227,10 @@ class CSP:
         
 
     def get_unary_relation(self, i, constraint_info):
+        """This method returns
+           an anonymous function
+           for a unary constrain
+        """
         if constraint_info[3] == "==":
             return lambda Xi: int(constraint_info[0]) * Xi + int(constraint_info[2]) == int(constraint_info[4])
         elif constraint_info[3] == "!=":
@@ -240,46 +253,62 @@ class CSP:
            for the two selected variables
            are satisfied. 
         """
+        if self._forward_checking:
+            # store all arcs specified by the constraints in queue
+            queue = self._arcs[:]
         
-        # store all arcs specified by the constraints in queue
-        queue = [arc for arc in self._constraints.keys() if type(arc) is tuple]
+            # loop through the queue
+            while queue:
         
-        # loop through the queue
-        while not queue:
-            # look at an item from queue
-            ind_var1, ind_var2 = queue.pop()
-            # check if CSP needs to be revised
-            if self.revise(ind_var1, var2_index):
-                # is size of domain for variable 1 equal to zero
-                if len(self._domains[ind_var1]) == 0:
-                    # an inconsistency is found
-                    return False
+                # look at an item from queue
+                # item is a tuple of a tuple and comparison function
+                var1, var2 = queue.pop()
+                
+                # check if CSP needs to be revised
+                if self.revise(var1, var2):
+                    # is size of domain for variable 1 equal to zero
+                    if len(self._domains[var1]) == 0:
+                        # an inconsistency is found
+                        return False
 
-                # otherwise
-                # for each neighbor variable in 
-                # the neighbor list of variables 1 minus variable 2
-                self._neighbors[ind_var1].remove(var2_index)
-                for neighbor in self._neighbors[ind_var1]:
-                    # add that arc that variable
-                    queue.append((neighbor, ind_var1))
-
+                    # otherwise
+                    # for each neighbor variable in 
+                    # the neighbor list of variables 1 minus variable 2
+                    for tup in self._arcs:
+                        if tup[1] == var1:
+                            queue.append(tup)
         return True
 
     def revise(self, i, j):
+        """This method helps the 
+           AC-3 algorithm (implemented
+           in verify_arc_consistency)
+           to reduce the domain of
+           variable at position i.
+        """
         revised = False
-        # constraint - lambda function
-        compare = self._constraints[(i, j)]
+        
         # for each value, x, in domains of X_i
         for X_i_value in self._domains[i]:
+            out = False
+            
             # for each value, y, in domains of X_j
             for X_j_value in self._domains[j]:
-                if compare(X_i_value, X_j_value):
-                    # Found one value from D_j that makes
-                    # (x, y) satisfy the constraint
+                
+                for tup in self._constraints[i]:
+                    
+                    if tup[0] == (i, j) and tup[1](X_i_value, X_j_value):
+                        # Found one value from D_j that makes
+                        # (x, y) satisfy the constraint
+                        out = True
+                        break
+                if out:
                     break
             else:
                 self._domains[i].remove(X_i_value)
                 revised = True
+
+
         
         return revised
 
